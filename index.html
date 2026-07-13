@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APT Disaster-Response &amp; Rebuild Professionals</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+  .panel {
+    position: absolute; z-index: 1000; background: rgba(255,255,255,0.95);
+    border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); padding: 10px 14px;
+  }
+  #title-panel { top: 10px; left: 10px; max-width: 320px; }
+  #title-panel h1 { font-size: 15px; margin: 0 0 4px 0; }
+  #title-panel p { font-size: 12px; margin: 0; color: #333; line-height: 1.4; }
+  #legend { bottom: 20px; left: 10px; font-size: 12px; line-height: 1.5; }
+  #legend h2 { font-size: 12px; margin: 8px 0 6px 0; }
+  #legend h2:first-child { margin-top: 0; }
+  #legend .row { display: flex; align-items: center; margin-bottom: 3px; }
+  #legend .swatch { width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; border: 1px solid rgba(0,0,0,0.3); flex-shrink: 0; }
+  #legend .divider { border-top: 1px solid #ddd; margin: 6px 0; }
+  .leaflet-popup-content { font-size: 13px; max-width: 280px; }
+  .leaflet-popup-content b { display: block; margin-bottom: 2px; font-size: 14px; }
+  .leaflet-popup-content .subtitle { color: #555; font-size: 12px; margin-bottom: 6px; }
+  .leaflet-popup-content .field { margin-top: 5px; }
+  .leaflet-popup-content .field-label { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .leaflet-popup-content .tags { margin-top: 2px; }
+  .leaflet-popup-content .tag { display: inline-block; background: #eee; border-radius: 3px; padding: 1px 5px; margin: 1px 2px 1px 0; font-size: 11px; }
+  .leaflet-popup-content a { color: #1a5fb4; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="title-panel" class="panel">
+  <h1>APT Disaster-Response &amp; Rebuild Professionals</h1>
+  <p>Firms and individuals affiliated with the Association for Preservation Technology (APT) with documented historic-preservation experience — acute disaster response and/or historic-rebuild trades. Maintained by APT's Disaster Response Initiative.</p>
+</div>
+
+<div id="legend" class="panel">
+  <h2>What they do</h2>
+  <div class="row"><span class="swatch" style="background:#6a3d9a"></span>Responder + rebuild specialist</div>
+  <div class="row"><span class="swatch" style="background:#e8792f"></span>Acute disaster responder</div>
+  <div class="row"><span class="swatch" style="background:#3c8a4c"></span>Rebuild-phase specialist</div>
+  <div class="row"><span class="swatch" style="background:#9aa0a6"></span>General preservation trade</div>
+  <div class="divider"></div>
+  <h2>Size</h2>
+  <div class="row"><span class="swatch" style="background:#555; width:16px; height:16px;"></span>Firm</div>
+  <div class="row"><span class="swatch" style="background:#555; width:9px; height:9px;"></span>Individual</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const CATEGORY_COLOR = {
+  both: '#6a3d9a',
+  responder: '#e8792f',
+  rebuild: '#3c8a4c',
+  other: '#9aa0a6'
+};
+
+const map = L.map('map', { zoomControl: true }).setView([40, -95], 4);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function tagList(tags) {
+  if (!tags || !tags.length) return '';
+  return `<div class="tags">${tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>`;
+}
+
+function popupHtml(p) {
+  let html = `<b>${escapeHtml(p.name)}</b>`;
+  if (p.subtitle) html += `<div class="subtitle">${escapeHtml(p.subtitle)}${p.kind === 'individual' && p.firm_name ? ' · ' + escapeHtml(p.firm_name) : ''}</div>`;
+
+  const loc = [p.city, p.state_province, p.country].filter(Boolean).join(', ');
+  if (loc) html += `<div class="field"><div class="field-label">Location</div>${escapeHtml(loc)}</div>`;
+
+  if (p.website) html += `<div class="field"><div class="field-label">Website</div><a href="${escapeHtml(p.website)}" target="_blank" rel="noopener">${escapeHtml(p.website)}</a></div>`;
+  if (p.public_contact) html += `<div class="field"><div class="field-label">Contact</div>${escapeHtml(p.public_contact)}</div>`;
+
+  if (p.disaster_tags && p.disaster_tags.length) html += `<div class="field"><div class="field-label">Disaster response experience</div>${tagList(p.disaster_tags)}</div>`;
+  if (p.rebuild_phase_relevant) html += `<div class="field"><div class="field-label">Rebuild-phase specialties</div>${tagList(p.rebuild_specialties.length ? p.rebuild_specialties : p.specialty_tags)}</div>`;
+  else if (p.specialty_tags && p.specialty_tags.length) html += `<div class="field"><div class="field-label">Specialties</div>${tagList(p.specialty_tags)}</div>`;
+
+  if (p.past_projects) html += `<div class="field"><div class="field-label">Documented project</div>${escapeHtml(p.past_projects)}</div>`;
+  if (p.kind === 'individual' && (p.is_fellow || p.is_recognized_professional)) {
+    const badges = [];
+    if (p.is_fellow) badges.push('APT Fellow');
+    if (p.is_recognized_professional) badges.push('APT Recognized Professional');
+    html += `<div class="field"><div class="field-label">Designation</div>${escapeHtml(badges.join(', '))}</div>`;
+  }
+  return html;
+}
+
+fetch('data.geojson')
+  .then(r => r.json())
+  .then(geojson => {
+    const layer = L.geoJSON(geojson, {
+      pointToLayer: (feature, latlng) => {
+        const p = feature.properties;
+        const color = CATEGORY_COLOR[p.role_category] || CATEGORY_COLOR.other;
+        const radius = p.kind === 'firm' ? 8 : 5;
+        return L.circleMarker(latlng, {
+          radius: radius,
+          fillColor: color,
+          color: color,
+          weight: 1,
+          fillOpacity: 0.75,
+          opacity: 0.9
+        });
+      },
+      onEachFeature: (feature, layer) => {
+        layer.bindPopup(popupHtml(feature.properties));
+      }
+    });
+    layer.addTo(map);
+  });
+</script>
+</body>
+</html>
