@@ -194,42 +194,88 @@ function groupIcon(features) {
   });
 }
 
+// Grouping by exact coordinate isn't enough: distinct nearby points (e.g. downtown
+// DC vs. Alexandria, VA, ~10km apart) can land within a few screen pixels of each
+// other at low zoom, so the topmost marker silently eats clicks meant for the other.
+// Instead, cluster by on-screen pixel distance at the current zoom and recompute on
+// every zoomend so clusters split apart as the user zooms in.
+//
+// Greedy + centroid-based (a point joins the nearest cluster whose *current center*
+// it's within range of, not just any single member) rather than naive nearest-neighbor
+// chaining: chaining lets a dense corridor of points (e.g. DC-Baltimore-Philly-NYC-
+// Boston) daisy-chain into one absurd mega-cluster even at a small radius, since each
+// link only needs to be close to its immediate neighbor. Centroids resist that because
+// a cluster's center drifts away from new candidates as it grows.
+const CLUSTER_PIXEL_RADIUS = 15;
+
+function clusterByPixelDistance(features, zoom) {
+  const clusters = [];
+  features.forEach(f => {
+    const [lon, lat] = f.geometry.coordinates;
+    const pt = map.project([lat, lon], zoom);
+    let best = null, bestDist = Infinity;
+    for (const c of clusters) {
+      const d = Math.hypot(pt.x - c.sumX / c.count, pt.y - c.sumY / c.count);
+      if (d <= CLUSTER_PIXEL_RADIUS && d < bestDist) { best = c; bestDist = d; }
+    }
+    if (best) {
+      best.features.push(f);
+      best.sumX += pt.x;
+      best.sumY += pt.y;
+      best.count++;
+    } else {
+      clusters.push({ features: [f], sumX: pt.x, sumY: pt.y, count: 1 });
+    }
+  });
+  return clusters.map(c => c.features);
+}
+
+function clusterCenter(features) {
+  const lat = features.reduce((s, f) => s + f.geometry.coordinates[1], 0) / features.length;
+  const lon = features.reduce((s, f) => s + f.geometry.coordinates[0], 0) / features.length;
+  return [lat, lon];
+}
+
+let allFeatures = [];
+const markerLayer = L.layerGroup().addTo(map);
+
+function renderMarkers() {
+  markerLayer.clearLayers();
+  const clusters = clusterByPixelDistance(allFeatures, map.getZoom());
+
+  clusters.forEach(features => {
+    const latlng = clusterCenter(features);
+
+    if (features.length === 1) {
+      const p = features[0].properties;
+      const color = CATEGORY_COLOR[p.role_category] || CATEGORY_COLOR.other;
+      const radius = p.kind === 'firm' ? 8 : 5;
+      const marker = L.circleMarker(latlng, {
+        radius: radius,
+        fillColor: color,
+        color: color,
+        weight: 1,
+        fillOpacity: 0.75,
+        opacity: 0.9
+      });
+      marker.bindPopup(popupHtml(p));
+      marker.addTo(markerLayer);
+    } else {
+      const marker = L.marker(latlng, { icon: groupIcon(features) });
+      marker.bindPopup('', { maxHeight: 260 });
+      marker.on('popupopen', e => showGroupList(e.popup, features));
+      marker.addTo(markerLayer);
+    }
+  });
+}
+
+map.on('zoomend', renderMarkers);
+
 fetch('data.geojson')
   .then(r => r.json())
   .then(geojson => {
-    const groups = new Map();
-    geojson.features.forEach(f => {
-      const [lon, lat] = f.geometry.coordinates;
-      const key = lat.toFixed(5) + ',' + lon.toFixed(5);
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(f);
-    });
-
-    groups.forEach(features => {
-      const [lon, lat] = features[0].geometry.coordinates;
-      const latlng = [lat, lon];
-
-      if (features.length === 1) {
-        const p = features[0].properties;
-        const color = CATEGORY_COLOR[p.role_category] || CATEGORY_COLOR.other;
-        const radius = p.kind === 'firm' ? 8 : 5;
-        const marker = L.circleMarker(latlng, {
-          radius: radius,
-          fillColor: color,
-          color: color,
-          weight: 1,
-          fillOpacity: 0.75,
-          opacity: 0.9
-        });
-        marker.bindPopup(popupHtml(p));
-        marker.addTo(map);
-      } else {
-        const marker = L.marker(latlng, { icon: groupIcon(features) });
-        marker.bindPopup('', { maxHeight: 260 });
-        marker.on('popupopen', e => showGroupList(e.popup, features));
-        marker.addTo(map);
-      }
-    });
+    allFeatures = geojson.features;
+    renderMarkers();
   });
 </script>
 </body>
