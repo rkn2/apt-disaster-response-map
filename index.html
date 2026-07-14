@@ -29,6 +29,24 @@
   .leaflet-popup-content .tags { margin-top: 2px; }
   .leaflet-popup-content .tag { display: inline-block; background: #eee; border-radius: 3px; padding: 1px 5px; margin: 1px 2px 1px 0; font-size: 11px; }
   .leaflet-popup-content a { color: #1a5fb4; }
+  .leaflet-popup-content .project { margin-top: 4px; padding-top: 4px; border-top: 1px solid #eee; }
+  .leaflet-popup-content .project:first-child { border-top: none; padding-top: 0; }
+  .leaflet-popup-content .project-name { font-weight: 600; }
+  .leaflet-popup-content .project-desc { color: #444; font-size: 12px; margin-top: 1px; }
+  .group-marker-inner {
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; color: #fff; font-weight: 600; font-size: 12px;
+    border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+  .group-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .group-list { max-height: 220px; overflow-y: auto; }
+  .group-item { padding: 5px 2px; border-top: 1px solid #eee; cursor: pointer; }
+  .group-item:first-child { border-top: none; }
+  .group-item:hover { background: #f5f5f5; }
+  .group-item-name { font-weight: 600; font-size: 13px; }
+  .group-item-sub { color: #666; font-size: 11px; }
+  .group-back { color: #1a5fb4; font-size: 12px; margin-bottom: 6px; cursor: pointer; }
+  .group-back:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -49,6 +67,8 @@
   <h2>Size</h2>
   <div class="row"><span class="swatch" style="background:#555; width:16px; height:16px;"></span>Firm</div>
   <div class="row"><span class="swatch" style="background:#555; width:9px; height:9px;"></span>Individual</div>
+  <div class="divider"></div>
+  <div class="row"><span class="swatch" style="background:#555; width:16px; height:16px; font-size:9px; color:#fff; display:flex; align-items:center; justify-content:center;">N</span>Multiple at this location — click for list</div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -93,7 +113,20 @@ function popupHtml(p) {
   if (p.rebuild_phase_relevant) html += `<div class="field"><div class="field-label">Rebuild-phase specialties</div>${tagList(p.rebuild_specialties.length ? p.rebuild_specialties : p.specialty_tags)}</div>`;
   else if (p.specialty_tags && p.specialty_tags.length) html += `<div class="field"><div class="field-label">Specialties</div>${tagList(p.specialty_tags)}</div>`;
 
-  if (p.past_projects) html += `<div class="field"><div class="field-label">Documented project</div>${escapeHtml(p.past_projects)}</div>`;
+  if (p.past_projects && p.past_projects.length) {
+    const label = p.past_projects.length > 1 ? 'Documented projects' : 'Documented project';
+    const projHtml = p.past_projects.map(proj => {
+      const title = proj.url
+        ? `<a href="${escapeHtml(proj.url)}" target="_blank" rel="noopener">${escapeHtml(proj.name)}</a>`
+        : escapeHtml(proj.name);
+      let block = `<div class="project"><div class="project-name">${title}</div>`;
+      if (proj.historic_context) block += `<div class="project-desc">${escapeHtml(proj.historic_context)}</div>`;
+      if (proj.disaster_tags && proj.disaster_tags.length) block += tagList(proj.disaster_tags);
+      block += `</div>`;
+      return block;
+    }).join('');
+    html += `<div class="field"><div class="field-label">${label}</div>${projHtml}</div>`;
+  }
   if (p.kind === 'individual' && (p.is_fellow || p.is_recognized_professional)) {
     const badges = [];
     if (p.is_fellow) badges.push('APT Fellow');
@@ -103,15 +136,84 @@ function popupHtml(p) {
   return html;
 }
 
+function groupListHtml(features) {
+  const p0 = features[0].properties;
+  const loc = [p0.city, p0.state_province, p0.country].filter(Boolean).join(', ');
+  let html = `<div class="group-title">${features.length} at this location${loc ? ' &mdash; ' + escapeHtml(loc) : ''}</div><div class="group-list">`;
+  features.forEach((f, i) => {
+    const p = f.properties;
+    html += `<div class="group-item" data-idx="${i}">
+      <div class="group-item-name">${escapeHtml(p.name)}</div>
+      ${p.subtitle ? `<div class="group-item-sub">${escapeHtml(p.subtitle)}</div>` : ''}
+    </div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function groupDetailHtml(feature) {
+  return `<div class="group-back" data-back="1">&larr; Back to list</div>${popupHtml(feature.properties)}`;
+}
+
+// L.DomEvent.disableClickPropagation (applied to the popup container on init) only
+// stops 'mousedown'/'touchstart'/'dblclick'/'contextmenu' from reaching the map — the
+// native 'click' event still bubbles through, which is what the map's closePopupOnClick
+// listener reacts to. So our own list/back click handlers must stop it explicitly, or
+// clicking a name in the list closes the whole popup instead of showing its detail.
+function showGroupList(popup, features) {
+  popup.setContent(groupListHtml(features));
+  const el = popup.getElement();
+  if (!el) return;
+  el.querySelectorAll('.group-item').forEach(item => {
+    item.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      showGroupDetail(popup, features, parseInt(item.dataset.idx, 10));
+    });
+  });
+}
+
+function showGroupDetail(popup, features, idx) {
+  popup.setContent(groupDetailHtml(features[idx]));
+  const el = popup.getElement();
+  if (!el) return;
+  const back = el.querySelector('.group-back');
+  if (back) back.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    showGroupList(popup, features);
+  });
+}
+
+function groupIcon(features) {
+  const categories = new Set(features.map(f => f.properties.role_category));
+  const bg = categories.size === 1 ? (CATEGORY_COLOR[[...categories][0]] || CATEGORY_COLOR.other) : '#555';
+  const size = Math.min(40, 20 + Math.sqrt(features.length) * 5);
+  return L.divIcon({
+    className: 'group-marker',
+    html: `<div class="group-marker-inner" style="width:${size}px;height:${size}px;background:${bg};">${features.length}</div>`,
+    iconSize: [size, size]
+  });
+}
+
 fetch('data.geojson')
   .then(r => r.json())
   .then(geojson => {
-    const layer = L.geoJSON(geojson, {
-      pointToLayer: (feature, latlng) => {
-        const p = feature.properties;
+    const groups = new Map();
+    geojson.features.forEach(f => {
+      const [lon, lat] = f.geometry.coordinates;
+      const key = lat.toFixed(5) + ',' + lon.toFixed(5);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(f);
+    });
+
+    groups.forEach(features => {
+      const [lon, lat] = features[0].geometry.coordinates;
+      const latlng = [lat, lon];
+
+      if (features.length === 1) {
+        const p = features[0].properties;
         const color = CATEGORY_COLOR[p.role_category] || CATEGORY_COLOR.other;
         const radius = p.kind === 'firm' ? 8 : 5;
-        return L.circleMarker(latlng, {
+        const marker = L.circleMarker(latlng, {
           radius: radius,
           fillColor: color,
           color: color,
@@ -119,12 +221,15 @@ fetch('data.geojson')
           fillOpacity: 0.75,
           opacity: 0.9
         });
-      },
-      onEachFeature: (feature, layer) => {
-        layer.bindPopup(popupHtml(feature.properties));
+        marker.bindPopup(popupHtml(p));
+        marker.addTo(map);
+      } else {
+        const marker = L.marker(latlng, { icon: groupIcon(features) });
+        marker.bindPopup('', { maxHeight: 260 });
+        marker.on('popupopen', e => showGroupList(e.popup, features));
+        marker.addTo(map);
       }
     });
-    layer.addTo(map);
   });
 </script>
 </body>
