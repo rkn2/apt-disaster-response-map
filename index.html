@@ -21,6 +21,15 @@
   #legend .row { display: flex; align-items: center; margin-bottom: 3px; }
   #legend .swatch { width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; border: 1px solid rgba(0,0,0,0.3); flex-shrink: 0; }
   #legend .divider { border-top: 1px solid #ddd; margin: 6px 0; }
+  #filter-panel { top: 10px; right: 10px; max-width: 220px; max-height: calc(100vh - 40px); overflow-y: auto; }
+  #filter-panel h2 { font-size: 12px; margin: 0 0 6px 0; }
+  #filter-panel .filter-actions { font-size: 11px; margin-bottom: 6px; }
+  #filter-panel .filter-actions a { color: #1a5fb4; cursor: pointer; margin-right: 8px; }
+  #filter-panel .filter-actions a:hover { text-decoration: underline; }
+  #filter-panel label { display: flex; align-items: center; font-size: 12px; margin-bottom: 3px; cursor: pointer; }
+  #filter-panel input[type="checkbox"] { margin: 0 6px 0 0; }
+  #filter-panel .count { color: #888; margin-left: 4px; }
+  #filter-count { font-size: 11px; color: #555; margin-top: 6px; padding-top: 6px; border-top: 1px solid #ddd; }
   .leaflet-popup-content { font-size: 13px; max-width: 280px; }
   .leaflet-popup-content b { display: block; margin-bottom: 2px; font-size: 14px; }
   .leaflet-popup-content .subtitle { color: #555; font-size: 12px; margin-bottom: 6px; }
@@ -69,6 +78,13 @@
   <div class="row"><span class="swatch" style="background:#555; width:9px; height:9px;"></span>Individual</div>
   <div class="divider"></div>
   <div class="row"><span class="swatch" style="background:#555; width:16px; height:16px; font-size:9px; color:#fff; display:flex; align-items:center; justify-content:center;">N</span>Multiple at this location — click for list</div>
+</div>
+
+<div id="filter-panel" class="panel">
+  <h2>Filter by specialty</h2>
+  <div class="filter-actions"><a id="filter-all">All</a><a id="filter-none">None</a></div>
+  <div id="filter-list"></div>
+  <div id="filter-count"></div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -237,11 +253,60 @@ function clusterCenter(features) {
 }
 
 let allFeatures = [];
+let activeTags = null; // null = no filter applied (show everything)
 const markerLayer = L.layerGroup().addTo(map);
+
+function specialtyLabel(tag) {
+  return tag.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function buildFilterPanel(features) {
+  const counts = {};
+  features.forEach(f => {
+    (f.properties.specialty_tags || []).forEach(t => { counts[t] = (counts[t] || 0) + 1; });
+  });
+  const tags = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  activeTags = new Set(tags); // default: everything selected
+
+  const list = document.getElementById('filter-list');
+  list.innerHTML = tags.map(t => `
+    <label>
+      <input type="checkbox" data-tag="${escapeHtml(t)}" checked>
+      ${escapeHtml(specialtyLabel(t))}<span class="count">(${counts[t]})</span>
+    </label>
+  `).join('');
+
+  list.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) activeTags.add(cb.dataset.tag);
+      else activeTags.delete(cb.dataset.tag);
+      renderMarkers();
+    });
+  });
+
+  document.getElementById('filter-all').addEventListener('click', () => {
+    activeTags = new Set(tags);
+    list.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = true; });
+    renderMarkers();
+  });
+  document.getElementById('filter-none').addEventListener('click', () => {
+    activeTags = new Set();
+    list.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+    renderMarkers();
+  });
+}
+
+function visibleFeatures() {
+  if (!activeTags) return allFeatures;
+  if (activeTags.size === 0) return [];
+  return allFeatures.filter(f => (f.properties.specialty_tags || []).some(t => activeTags.has(t)));
+}
 
 function renderMarkers() {
   markerLayer.clearLayers();
-  const clusters = clusterByPixelDistance(allFeatures, map.getZoom());
+  const shown = visibleFeatures();
+  document.getElementById('filter-count').textContent = `Showing ${shown.length} of ${allFeatures.length}`;
+  const clusters = clusterByPixelDistance(shown, map.getZoom());
 
   clusters.forEach(features => {
     const latlng = clusterCenter(features);
@@ -275,6 +340,7 @@ fetch('data.geojson')
   .then(r => r.json())
   .then(geojson => {
     allFeatures = geojson.features;
+    buildFilterPanel(allFeatures);
     renderMarkers();
   });
 </script>
