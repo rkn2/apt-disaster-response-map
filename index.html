@@ -90,7 +90,7 @@
 
 <div id="title-panel" class="panel">
   <h1>APT Disaster-Response &amp; Rebuild Professionals</h1>
-  <p>Firms and individuals affiliated with the Association for Preservation Technology (APT) with documented historic-preservation experience — acute disaster response and/or historic-rebuild trades. Maintained by APT's Disaster Response Initiative.</p>
+  <p>Firms and individuals with documented historic-preservation experience — acute disaster response and/or historic-rebuild trades. Most are affiliated with the Association for Preservation Technology (APT); entries marked "independently researched" are not APT members but meet the same evidence bar. Maintained by APT's Disaster Response Initiative.</p>
 </div>
 
 <div id="search-panel" class="panel">
@@ -111,6 +111,8 @@
   <div class="row"><span class="swatch" style="background:#555; width:9px; height:9px;"></span>Individual</div>
   <div class="divider"></div>
   <div class="row"><span class="swatch" style="background:#555; width:16px; height:16px; font-size:9px; color:#fff; display:flex; align-items:center; justify-content:center;">N</span>Multiple at this location — click for list</div>
+  <div class="divider"></div>
+  <div class="row"><span class="swatch" style="background:#fff; border: 2px dashed #555;"></span>Independently researched (not an APT member)</div>
 </div>
 
 <div id="filter-panel" class="panel">
@@ -190,6 +192,7 @@ function tagList(tags) {
 function popupHtml(p) {
   let html = `<b>${escapeHtml(p.name)}</b>`;
   if (p.subtitle) html += `<div class="subtitle">${escapeHtml(p.subtitle)}${p.kind === 'individual' && p.firm_name ? ' · ' + escapeHtml(p.firm_name) : ''}</div>`;
+  if (p.apt_affiliated === false) html += `<div class="subtitle">Independently researched — not an APT member</div>`;
 
   const loc = [p.city, p.state_province, p.country].filter(Boolean).join(', ');
   if (loc) html += `<div class="field"><div class="field-label">Location</div>${escapeHtml(loc)}</div>`;
@@ -391,7 +394,8 @@ function renderMarkers() {
         radius: radius,
         fillColor: color,
         color: color,
-        weight: 1,
+        weight: p.apt_affiliated === false ? 2 : 1,
+        dashArray: p.apt_affiliated === false ? '2,2' : null,
         fillOpacity: 0.75,
         opacity: 0.9
       });
