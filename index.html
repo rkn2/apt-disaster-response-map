@@ -12,9 +12,36 @@
     position: absolute; z-index: 1000; background: rgba(255,255,255,0.95);
     border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); padding: 10px 14px;
   }
+  .panel.collapsible { cursor: pointer; }
+  .panel.collapsible > *:first-child { cursor: pointer; }
+  .panel.collapsible > *:first-child::after { content: '  \25BE'; font-size: 10px; color: #999; }
+  .panel.collapsible.collapsed > *:first-child::after { content: '  \25B8'; }
+  .panel.collapsible.collapsed > *:not(:first-child) { display: none; }
   #title-panel { top: 10px; left: 10px; max-width: 320px; }
   #title-panel h1 { font-size: 15px; margin: 0 0 4px 0; }
   #title-panel p { font-size: 12px; margin: 0; color: #333; line-height: 1.4; }
+  #search-panel { top: 10px; left: 50%; transform: translateX(-50%); width: 280px; padding: 8px 10px; }
+  #search-input { width: 100%; box-sizing: border-box; font-size: 13px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; }
+  #search-results { margin-top: 2px; max-height: 220px; overflow-y: auto; }
+  #search-results .search-result { padding: 6px 8px; font-size: 12px; cursor: pointer; border-radius: 4px; }
+  #search-results .search-result:hover { background: #f0f0f0; }
+  #search-results .search-result.empty { color: #888; cursor: default; }
+  #search-results .search-result.empty:hover { background: none; }
+  #region-panel { bottom: 20px; right: 10px; width: 260px; max-height: calc(100vh - 40px); overflow-y: auto; }
+  #region-panel h2 { font-size: 12px; margin: 0 0 6px 0; }
+  #region-panel .region-hint { font-size: 11px; color: #666; margin: 0 0 8px 0; }
+  #region-panel .region-radius-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 11px; }
+  #region-panel .region-radius-row input { width: 55px; font-size: 12px; padding: 3px 5px; border: 1px solid #ccc; border-radius: 4px; }
+  #region-panel button { font-size: 11px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; margin-right: 6px; margin-bottom: 6px; }
+  #region-panel button:hover { background: #f0f0f0; }
+  #region-summary { font-size: 11px; color: #555; margin: 4px 0; }
+  #region-list { max-height: 220px; overflow-y: auto; margin-bottom: 6px; }
+  #region-list .region-item { display: flex; align-items: flex-start; font-size: 12px; padding: 4px 0; border-top: 1px solid #eee; cursor: pointer; }
+  #region-list .region-item:first-child { border-top: none; }
+  #region-list .region-item input { margin: 2px 6px 0 0; }
+  #region-list .region-item-name { font-weight: 600; }
+  #region-list .region-item-contact { color: #666; font-size: 11px; }
+  .crosshair-cursor, .crosshair-cursor .leaflet-interactive { cursor: crosshair !important; }
   #legend { bottom: 20px; left: 10px; font-size: 12px; line-height: 1.5; }
   #legend h2 { font-size: 12px; margin: 8px 0 6px 0; }
   #legend h2:first-child { margin-top: 0; }
@@ -66,7 +93,13 @@
   <p>Firms and individuals affiliated with the Association for Preservation Technology (APT) with documented historic-preservation experience — acute disaster response and/or historic-rebuild trades. Maintained by APT's Disaster Response Initiative.</p>
 </div>
 
+<div id="search-panel" class="panel">
+  <input id="search-input" type="text" placeholder="Search for a city or address…" autocomplete="off">
+  <div id="search-results"></div>
+</div>
+
 <div id="legend" class="panel">
+  <h2 class="panel-title">Legend</h2>
   <h2>What they do</h2>
   <div class="row"><span class="swatch" style="background:#6a3d9a"></span>Responder + rebuild specialist</div>
   <div class="row"><span class="swatch" style="background:#e8792f"></span>Acute disaster responder</div>
@@ -87,6 +120,23 @@
   <div id="filter-count"></div>
 </div>
 
+<div id="region-panel" class="panel">
+  <h2>Region outreach</h2>
+  <p class="region-hint">Set a radius, click "Draw region", then click a point on the map to center it (respects the specialty filter above).</p>
+  <div class="region-radius-row">
+    <label for="region-radius-input">Radius (miles)</label>
+    <input id="region-radius-input" type="number" min="1" max="500" value="25">
+  </div>
+  <button id="region-draw-btn" type="button">Draw region</button>
+  <button id="region-clear-btn" type="button" style="display:none;">Clear</button>
+  <div id="region-summary"></div>
+  <div id="region-list"></div>
+  <div id="region-actions" style="display:none;">
+    <button id="region-copy-btn" type="button">Copy list</button>
+    <button id="region-email-btn" type="button">Email (bcc)</button>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const CATEGORY_COLOR = {
@@ -102,6 +152,28 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
+
+// unpkg-hosted leaflet.js resolves its default marker icon images relative to the
+// page, not the CDN, so without this override L.marker() renders a broken image.
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+});
+
+// Clicking a panel's background collapses it to just its title, click again to reopen.
+// Clicks on actual controls (links, buttons, inputs, checkboxes) are excluded so they
+// keep working instead of also toggling the panel.
+['title-panel', 'legend', 'filter-panel', 'region-panel'].forEach(id => {
+  const panelEl = document.getElementById(id);
+  if (!panelEl) return;
+  panelEl.classList.add('collapsible');
+  panelEl.addEventListener('click', ev => {
+    if (ev.target.closest('a, button, input, label, textarea, select')) return;
+    panelEl.classList.toggle('collapsed');
+  });
+});
 
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -335,6 +407,186 @@ function renderMarkers() {
 }
 
 map.on('zoomend', renderMarkers);
+
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+let searchDebounce = null;
+let searchMarker = null;
+
+function showSearchMessage(text) {
+  searchResults.innerHTML = `<div class="search-result empty">${escapeHtml(text)}</div>`;
+}
+
+function goToSearchResult(lat, lon, label) {
+  map.setView([lat, lon], 13);
+  if (searchMarker) map.removeLayer(searchMarker);
+  searchMarker = L.marker([lat, lon]).addTo(map).bindPopup(escapeHtml(label)).openPopup();
+  searchResults.innerHTML = '';
+  searchInput.value = label;
+}
+
+function runSearch(query) {
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}`)
+    .then(r => r.json())
+    .then(results => {
+      if (!results.length) { showSearchMessage('No results'); return; }
+      searchResults.innerHTML = results.map((r, i) =>
+        `<div class="search-result" data-idx="${i}">${escapeHtml(r.display_name)}</div>`
+      ).join('');
+      searchResults.querySelectorAll('.search-result').forEach(el => {
+        el.addEventListener('click', () => {
+          const r = results[parseInt(el.dataset.idx, 10)];
+          goToSearchResult(parseFloat(r.lat), parseFloat(r.lon), r.display_name);
+        });
+      });
+    })
+    .catch(() => showSearchMessage('Search failed'));
+}
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchDebounce);
+  const query = searchInput.value.trim();
+  if (!query) { searchResults.innerHTML = ''; return; }
+  searchDebounce = setTimeout(() => runSearch(query), 400);
+});
+
+searchInput.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') { searchResults.innerHTML = ''; searchInput.blur(); }
+});
+
+// --- Region outreach: click to center a circle, size it by miles, list contacts inside. ---
+const MILES_TO_METERS = 1609.344;
+
+let regionCenter = null;
+let regionRadius = 0;
+let regionCircle = null;
+let regionArmed = false;
+
+const regionDrawBtn = document.getElementById('region-draw-btn');
+const regionClearBtn = document.getElementById('region-clear-btn');
+const regionRadiusInput = document.getElementById('region-radius-input');
+const regionSummary = document.getElementById('region-summary');
+const regionList = document.getElementById('region-list');
+const regionActions = document.getElementById('region-actions');
+const regionCopyBtn = document.getElementById('region-copy-btn');
+const regionEmailBtn = document.getElementById('region-email-btn');
+
+function extractEmail(text) {
+  if (!text) return null;
+  const m = text.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
+  return m ? m[0] : null;
+}
+
+function currentRadiusMeters() {
+  const miles = parseFloat(regionRadiusInput.value);
+  return (isFinite(miles) && miles > 0 ? miles : 25) * MILES_TO_METERS;
+}
+
+function clearRegion() {
+  if (regionCircle) { map.removeLayer(regionCircle); regionCircle = null; }
+  regionCenter = null;
+  regionRadius = 0;
+  regionArmed = false;
+  map.getContainer().classList.remove('crosshair-cursor');
+  regionClearBtn.style.display = 'none';
+  regionActions.style.display = 'none';
+  regionSummary.textContent = '';
+  regionList.innerHTML = '';
+}
+
+regionDrawBtn.addEventListener('click', () => {
+  clearRegion();
+  regionArmed = true;
+  map.getContainer().classList.add('crosshair-cursor');
+  regionSummary.textContent = 'Click a point on the map to center the region.';
+});
+
+regionClearBtn.addEventListener('click', clearRegion);
+
+map.on('click', e => {
+  if (!regionArmed) return;
+  regionArmed = false;
+  map.getContainer().classList.remove('crosshair-cursor');
+  regionCenter = e.latlng;
+  regionRadius = currentRadiusMeters();
+  regionCircle = L.circle(regionCenter, {
+    radius: regionRadius,
+    color: '#1a5fb4',
+    weight: 2,
+    fillOpacity: 0.1
+  }).addTo(map);
+  regionClearBtn.style.display = '';
+  computeRegionContacts();
+});
+
+regionRadiusInput.addEventListener('input', () => {
+  if (!regionCenter || !regionCircle) return;
+  regionRadius = currentRadiusMeters();
+  regionCircle.setRadius(regionRadius);
+  computeRegionContacts();
+});
+
+function checkedRegionMatches(matches) {
+  const checked = new Set();
+  regionList.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => checked.add(parseInt(cb.dataset.idx, 10)));
+  return matches.filter((_, i) => checked.has(i));
+}
+
+function computeRegionContacts() {
+  const matches = visibleFeatures().filter(f => {
+    const [lon, lat] = f.geometry.coordinates;
+    return map.distance(regionCenter, [lat, lon]) <= regionRadius;
+  });
+  regionSummary.textContent = `${matches.length} contact${matches.length === 1 ? '' : 's'} within ${(regionRadius / MILES_TO_METERS).toFixed(1)} mi`;
+  if (!matches.length) {
+    regionList.innerHTML = '';
+    regionActions.style.display = 'none';
+    return;
+  }
+  regionList.innerHTML = matches.map((f, i) => {
+    const p = f.properties;
+    const loc = [p.city, p.state_province, p.country].filter(Boolean).join(', ');
+    const contact = p.public_contact || p.website || '';
+    return `<label class="region-item">
+      <input type="checkbox" data-idx="${i}" checked>
+      <span>
+        <span class="region-item-name">${escapeHtml(p.name)}</span><br>
+        <span class="region-item-contact">${escapeHtml(loc)}${contact ? ' — ' + escapeHtml(contact) : ''}</span>
+      </span>
+    </label>`;
+  }).join('');
+  regionActions.style.display = '';
+  regionCopyBtn.onclick = () => copyRegionList(matches);
+  regionEmailBtn.onclick = () => emailRegionList(matches);
+}
+
+function copyRegionList(matches) {
+  const selected = checkedRegionMatches(matches);
+  const lines = selected.map(f => {
+    const p = f.properties;
+    const loc = [p.city, p.state_province, p.country].filter(Boolean).join(', ');
+    const contact = p.public_contact || p.website || 'no contact info listed';
+    return `${p.name} (${loc}) — ${contact}`;
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const original = regionCopyBtn.textContent;
+    regionCopyBtn.textContent = 'Copied!';
+    setTimeout(() => { regionCopyBtn.textContent = original; }, 1500);
+  }).catch(() => alert('Could not copy — your browser may be blocking clipboard access.'));
+}
+
+function emailRegionList(matches) {
+  const selected = checkedRegionMatches(matches);
+  const emails = selected.map(f => extractEmail(f.properties.public_contact)).filter(Boolean);
+  if (!emails.length) {
+    alert('No email addresses were found in the contact info for the selected entries. Use "Copy list" and reach out by phone or website instead.');
+    return;
+  }
+  if (emails.length < selected.length) {
+    alert(`Found email addresses for ${emails.length} of ${selected.length} selected contacts. The rest have no email listed — use "Copy list" to reach them by phone or website.`);
+  }
+  window.location.href = `mailto:?bcc=${encodeURIComponent(emails.join(','))}`;
+}
 
 fetch('data.geojson')
   .then(r => r.json())
