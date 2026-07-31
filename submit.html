@@ -366,7 +366,10 @@ const SUBMISSION = (function () {
     }
     // mailto: we cannot detect whether the mail client actually opened, so we
     // always reveal the copy-and-paste fallback alongside it.
-    const url = "mailto:" + encodeURIComponent(RECIPIENT) +
+    // RECIPIENT is deliberately NOT percent-encoded: it sits in the mailto path,
+    // where "@" is legal, and some mail handlers take a %40 there literally and end
+    // up with an empty To: field. Subject and body are query values and must be encoded.
+    const url = "mailto:" + RECIPIENT +
                 "?subject=" + encodeURIComponent(subject) +
                 "&body="    + encodeURIComponent(body);
     window.location.href = url;
@@ -584,7 +587,11 @@ document.getElementById('copy-btn').addEventListener('click', function () {
 });
 
 document.getElementById('retry-btn').addEventListener('click', function () {
-  if (lastBody) SUBMISSION.send(lastSubject, lastBody);
+  if (!lastBody) return;
+  // Re-assigning the same location.href is a no-op in some browsers, so the click
+  // always gets an acknowledgement rather than appearing to do nothing.
+  copyStatus.textContent = 'Asked your email program to open again. If nothing happens, copy the message above and send it yourself.';
+  SUBMISSION.send(lastSubject, lastBody);
 });
 </script>
 </body>
