@@ -5,9 +5,13 @@ documented historic-preservation disaster-response and/or rebuild-phase experien
 
 Live at: https://rkn2.github.io/apt-disaster-response-map/
 
-Built for APT's Disaster Response Initiative so that after a disaster, owners of historic buildings
-can find nearby APT-affiliated professionals — both acute responders and the trades/firms who do the
-historic rebuild once the rubble is cleared.
+Maintained by APT's Disaster Response Initiative and the Heritage3D Lab (Department of Architectural
+Engineering, Penn State) so that after a disaster, owners of historic buildings can find nearby
+professionals — both acute responders and the trades/firms who do the historic rebuild once the
+rubble is cleared.
+
+Pages: `index.html` (map), `faq.html` (about/FAQ/disclaimer), `submit.html` (suggest a listing),
+`update.html` (update or remove a listing). Contact: nap@psu.edu.
 
 Color = what they do:
 - **Purple** — documented acute disaster response experience *and* rebuild-phase specialty
