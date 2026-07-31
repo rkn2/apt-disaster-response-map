@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Correct or Remove a Listing — APT Disaster-Response &amp; Rebuild Professionals</title>
+<style>
+  /* Typography, colors and panel styling follow index.html. Font sizes are one step
+     larger here because this is a reading/typing document page rather than map chrome. */
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 15px; line-height: 1.5; color: #222; background: #f4f4f5;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 20px 16px 60px 16px; }
+  .card {
+    background: #fff; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+    padding: 18px 20px; margin-bottom: 16px;
+  }
+  a { color: #1a5fb4; }
+  h1 { font-size: 21px; margin: 0 0 6px 0; }
+  h2 { font-size: 15px; margin: 0 0 4px 0; }
+  p { margin: 0 0 10px 0; }
+  p:last-child { margin-bottom: 0; }
+  .sub { color: #555; font-size: 13px; }
+  .hint { color: #666; font-size: 13px; margin: 2px 0 8px 0; }
+  .backlinks { font-size: 13px; margin: 0 0 14px 0; }
+  .backlinks a { margin-right: 14px; }
+
+  fieldset { border: 1px solid #ddd; border-radius: 6px; margin: 0 0 16px 0; padding: 12px 14px 14px 14px; }
+  legend { font-size: 15px; font-weight: 600; padding: 0 6px; }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  input[type="text"], input[type="url"], input[type="email"], select, textarea {
+    width: 100%; box-sizing: border-box; font: inherit; font-size: 14px;
+    padding: 7px 9px; border: 1px solid #ccc; border-radius: 4px; background: #fff; color: #222;
+  }
+  textarea { min-height: 92px; resize: vertical; }
+  .req { font-weight: 400; font-size: 12px; color: #555; }
+  .req::before { content: "\2731\00a0"; }         /* asterisk is paired with the word "required" — never color alone */
+  .optional { font-weight: 400; font-size: 12px; color: #666; }
+
+  .choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 2px 14px; }
+  .choice { display: flex; align-items: flex-start; font-weight: 400; font-size: 14px; margin: 0; padding: 4px 0; cursor: pointer; }
+  .choice input { margin: 4px 8px 0 0; flex-shrink: 0; }
+  .choice .gloss { color: #666; font-size: 12px; display: block; }
+
+  /* The four intents are one radio group, each in its own bordered row, so removal
+     is exactly as visible as the other three and cannot hide inside a dropdown. */
+  .intent { display: block; margin-bottom: 8px; }
+  .intent label {
+    display: flex; align-items: flex-start; font-weight: 400; font-size: 15px;
+    border: 1px solid #ddd; border-radius: 6px; padding: 10px 12px; cursor: pointer; margin: 0;
+  }
+  .intent label:hover { background: #f7f8fa; }
+  .intent input { margin: 5px 10px 0 0; flex-shrink: 0; }
+  .intent .intent-title { font-weight: 600; }
+  .intent .intent-desc { display: block; color: #555; font-size: 13px; margin-top: 2px; }
+  .intent.removal label { border: 2px solid #a4262c; background: #fdf5f5; }
+  .intent.removal label:hover { background: #fbeced; }
+  .intent.removal .intent-title { color: #8a1f24; }
+  /* Selected state is carried by the radio itself; :has() adds a second, non-colour-only
+     cue (border weight) for browsers that support it, and is simply ignored where not. */
+  .intent label:has(input:checked) { border-color: #1a5fb4; background: #f0f4fa; box-shadow: inset 0 0 0 1px #1a5fb4; }
+  .intent.removal label:has(input:checked) { border-color: #a4262c; background: #fbeced; }
+
+  .callout { border: 1px solid #e6c66a; background: #fff8e6; border-radius: 6px; padding: 10px 12px; font-size: 13px; margin: 0 0 16px 0; }
+  .callout strong { display: block; margin-bottom: 2px; }
+  .callout.removal { border-color: #d9a2a5; background: #fdf5f5; }
+  .privacy { font-size: 13px; color: #444; }
+  .privacy li { margin-bottom: 4px; }
+
+  button {
+    font: inherit; font-size: 15px; padding: 9px 16px; border: 1px solid #1a5fb4;
+    border-radius: 6px; background: #1a5fb4; color: #fff; cursor: pointer;
+  }
+  button:hover { background: #17539f; }
+  button.secondary { background: #fff; color: #1a5fb4; }
+  button.secondary:hover { background: #f0f4fa; }
+
+  /* index.html defines no focus styling; a keyboard-operable form needs it, so it is added here. */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
+  .choice:focus-within, .intent label:focus-within { outline: 2px solid #1a5fb4; outline-offset: 2px; }
+  input:focus, select:focus, textarea:focus { border-color: #1a5fb4; }
+
+  #fallback { display: none; }
+  #fallback textarea { min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+  .addr { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #f0f0f0; padding: 1px 5px; border-radius: 3px; user-select: all; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .status { font-size: 13px; color: #555; }
+  @media (max-width: 480px) {
+    .wrap { padding: 12px 10px 40px 10px; }
+    .card { padding: 14px 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="backlinks">
+  <a href="index.html">&larr; Back to the map</a>
+  <a href="submit.html">Not listed yet? Ask to be added</a>
+</p>
+
+<div class="card">
+  <h1>Correct or remove your listing</h1>
+  <p class="sub">APT Disaster-Response &amp; Rebuild Professionals</p>
+  <p>Most entries on this map were compiled from APT records and from publicly available information about your
+     practice — not from anything you filled in. That means an entry can be wrong, out of date, or simply something
+     you would rather not be part of. This form is how you fix that.</p>
+  <div class="callout removal">
+    <strong>You can have your listing taken off the map, and you do not have to say why.</strong>
+    Choose <em>Remove my listing entirely</em> below, tell us which entry is yours, and send. No reason, no
+    justification, no negotiation. We may reply once to confirm the request came from you or your firm; we will not
+    ask you to explain it, and we will not try to talk you out of it.
+  </div>
+  <p class="sub">Removals and corrections are made by hand and take effect the next time the map data is published.</p>
+</div>
+
+<form id="update-form" class="card" novalidate>
+
+  <fieldset>
+    <legend>What do you need? <span class="req">required</span></legend>
+    <p class="hint">Pick the one that fits best. If more than one applies, pick the main one and explain the rest below.</p>
+
+    <div class="intent">
+      <label>
+        <input type="radio" name="intent" value="correct-information" required>
+        <span>
+          <span class="intent-title">Correct my information</span>
+          <span class="intent-desc">Something on the entry is factually wrong — name, spelling, firm, location, website, contact, a tag I do not actually hold, a project misattributed to me.</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="intent">
+      <label>
+        <input type="radio" name="intent" value="availability-or-capability-changed">
+        <span>
+          <span class="intent-title">My availability or capability has changed</span>
+          <span class="intent-desc">I have retired, changed firms, moved, stopped taking disaster-response work, or no longer offer something the entry says I offer.</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="intent">
+      <label>
+        <input type="radio" name="intent" value="add-capability">
+        <span>
+          <span class="intent-title">Add capability to my listing</span>
+          <span class="intent-desc">I do work the entry does not show — a specialty, a disaster type, or a documented project.</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="intent removal">
+      <label>
+        <input type="radio" name="intent" value="remove-listing-entirely">
+        <span>
+          <span class="intent-title">Remove my listing entirely</span>
+          <span class="intent-desc">Take me off the map. No reason required — nothing else on this form is required either, apart from telling us which listing is yours.</span>
+        </span>
+      </label>
+    </div>
+
+    <p class="status" id="intent-note" role="status" aria-live="polite"></p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Which listing is yours</legend>
+    <div class="field">
+      <label for="listing_name">Name exactly as it appears on the map <span class="req">required</span></label>
+      <p class="hint">Copy it from the pin's popup if you can. If the entry is a firm and you are writing on its
+         behalf, give the firm name.</p>
+      <input type="text" id="listing_name" name="listing_name" required autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="listing_location">City and state/province shown on the entry <span class="optional">(optional, helps us find the right pin)</span></label>
+      <input type="text" id="listing_location" name="listing_location" placeholder="Billings, MT" autocomplete="address-level2">
+    </div>
+    <div class="field">
+      <label for="listing_firm">Firm shown on the entry <span class="optional">(optional)</span></label>
+      <input type="text" id="listing_firm" name="listing_firm" autocomplete="organization">
+    </div>
+    <div class="field">
+      <label for="your_role">Your relationship to this listing <span class="optional">(optional)</span></label>
+      <p class="hint">For example: this is me; I am the firm's principal; I handle communications for the firm.</p>
+      <input type="text" id="your_role" name="your_role" autocomplete="off">
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>What is wrong, and what should it say?</legend>
+    <p class="hint">Optional for every intent, including removal. For a correction it is the most useful thing you
+       can give us — quote the wrong text and give the right text.</p>
+    <div class="field">
+      <label for="what_is_wrong">Description <span class="optional">(optional)</span></label>
+      <textarea id="what_is_wrong" name="what_is_wrong" rows="5"
+        placeholder="The entry says I am at Smith &amp; Co in Raleigh. I left in 2024 and now practise in Asheville. The masonry-stone tag is right; the seismic-retrofit tag is not mine."></textarea>
+    </div>
+    <div class="field">
+      <label for="corrected_fields">Corrected values <span class="optional">(optional)</span></label>
+      <p class="hint">If you know the exact fields, one per line, e.g. <em>city: Asheville</em>,
+         <em>website: https://…</em>, <em>public_contact: …</em>. Office locations and firm-level contact only —
+         never a home address, personal email or mobile number.</p>
+      <textarea id="corrected_fields" name="corrected_fields" rows="3"></textarea>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Tags to add or remove <span class="optional">(only if you are changing capability)</span></legend>
+    <p class="hint">Leave this whole section blank for a removal request, or if only your contact details changed.
+       Tick what should be <strong>added</strong>; list anything that should be <strong>taken off</strong> in the
+       box at the end. Every published tag carries a public source, so added tags need a link.</p>
+
+    <h2 style="margin-top:12px;">Discipline</h2>
+    <div class="choices" id="discipline-choices"></div>
+
+    <h2 style="margin-top:14px;">Materials and trades</h2>
+    <div class="choices" id="material-choices"></div>
+
+    <h2 style="margin-top:14px;">Disaster-response experience</h2>
+    <p class="hint">Documented experience only. A discipline alone earns no disaster tag — that is deliberate.</p>
+    <div class="choices" id="disaster-choices"></div>
+
+    <div class="field" style="margin-top:14px;">
+      <label for="evidence_urls">Links supporting the tags you ticked <span class="optional">(optional but needed before a tag can be published)</span></label>
+      <p class="hint">One URL per line: project pages, news coverage, publications, a workshop you taught, a
+         deployment or committee role.</p>
+      <textarea id="evidence_urls" name="evidence_urls" rows="3" placeholder="https://example.com/projects/post-fire-stabilization"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="tags_to_remove">Tags that should be taken off <span class="optional">(optional)</span></label>
+      <p class="hint">Anything the entry claims that is not accurate. You do not need to prove a negative — say it
+         is wrong and we will drop it.</p>
+      <textarea id="tags_to_remove" name="tags_to_remove" rows="2" style="min-height:56px;"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="past_projects">Documented projects to add <span class="optional">(optional)</span></label>
+      <p class="hint">One per line: <em>Project name — one sentence — https://link</em></p>
+      <textarea id="past_projects" name="past_projects" rows="3"></textarea>
+    </div>
+  </fieldset>
+
+  <div class="btn-row">
+    <button type="submit" id="submit-btn">Compose request</button>
+    <span class="status" id="form-status" role="status" aria-live="polite"></span>
+  </div>
+</form>
+
+<div class="card" id="fallback" tabindex="-1">
+  <h2>If your email program did not open</h2>
+  <p class="sub">This page has no server. It hands your answers to your own email program. If nothing happened when
+     you pressed the button — which is common on webmail-only setups such as Gmail in a browser without a mail
+     handler registered — copy the text below and email it yourself to
+     <span class="addr" id="fallback-addr"></span>, with the subject line shown. A removal request sent this way
+     counts exactly the same.</p>
+  <div class="field">
+    <label for="fallback-subject">Subject</label>
+    <input type="text" id="fallback-subject" readonly>
+  </div>
+  <div class="field">
+    <label for="fallback-body">Message</label>
+    <textarea id="fallback-body" readonly></textarea>
+  </div>
+  <div class="btn-row">
+    <button type="button" class="secondary" id="copy-btn">Copy message</button>
+    <button type="button" class="secondary" id="retry-btn">Try opening my email program again</button>
+    <span class="status" id="copy-status" role="status" aria-live="polite"></span>
+  </div>
+</div>
+
+<div class="card privacy">
+  <h2>What happens to what you send</h2>
+  <ul>
+    <li>Pressing the button does not upload anything. It opens a message in your own email program, addressed to
+        the project maintainer, with your answers written into the body. You can read and edit it before sending,
+        and nothing leaves your computer until you press send in your email program.</li>
+    <li>Your email address will be visible to the maintainer, because you are sending an email. It is used to
+        process and, if needed, confirm your request. It is not published on the map.</li>
+    <li>A removal request is acted on by deleting the entry from the published map data. What you wrote here is
+        kept only as long as needed to carry the removal out and to make sure the entry is not re-added by a later
+        research pass; the fact that an entry was removed on request is retained for that purpose.</li>
+    <li>Corrections change what is published: name, firm, city, state/province, country, website, firm-level public
+        contact, specialty tags, disaster tags, and documented projects. Every published tag keeps a source link.</li>
+    <li>Never published: home addresses, personal email addresses, mobile numbers, and any claim without a public
+        source.</li>
+    <li>This page loads no fonts, scripts, trackers or analytics from anywhere. There is no cookie and no logging.</li>
+  </ul>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ============================================================================
+ * SUBMISSION MECHANISM — THE ONE PLACE TO CHANGE
+ * ----------------------------------------------------------------------------
+ * Everything about how this form is delivered lives in this single object. No
+ * other part of the page knows or cares how submission happens; it only calls
+ * SUBMISSION.send(subject, body).
+ *
+ * >>> ACTION REQUIRED: replace RECIPIENT below with the real address. <<<
+ * NOTE: submit.html contains an identical block. The duplication is deliberate —
+ * these pages are self-contained with no shared asset — but if you change one,
+ * change the other.
+ *
+ * Current mode: "mailto" — composes a message in the visitor's own email client.
+ * Zero infrastructure, zero third-party accounts, nothing to maintain, and no
+ * one but the maintainer ever sees the data. Two real drawbacks: the recipient
+ * address is exposed in the page source (scrapeable by spammers), and it does
+ * nothing at all for visitors with no mail client registered in their browser.
+ * The visible fallback panel (copy-the-text-and-send-it-yourself) exists to
+ * cover the second case; keep it if you switch mechanisms. That matters more
+ * here than on submit.html: a person trying to opt out must never hit a dead end.
+ *
+ * To swap in a form-to-email service (Formspree, Basin, Netlify Forms, …),
+ * change mode to "post", set ENDPOINT, and nothing else on the page changes:
+ *
+ *   const MODE      = "post";
+ *   const ENDPOINT  = "https://formspree.io/f/xxxxxxxx";
+ *
+ * The "post" branch below is already written and inert until MODE is changed.
+ * ==========================================================================*/
+const SUBMISSION = (function () {
+  const MODE      = "mailto";                          // "mailto" | "post"
+  const RECIPIENT = "PLACEHOLDER-REPLACE-ME@psu.edu";  // <-- REPLACE THIS
+  const ENDPOINT  = "";                                // only used when MODE === "post"
+
+  function send(subject, body) {
+    if (MODE === "post") {
+      return fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ subject: subject, message: body })
+      }).then(r => ({ ok: r.ok, delivered: r.ok }));
+    }
+    // mailto: we cannot detect whether the mail client actually opened, so we
+    // always reveal the copy-and-paste fallback alongside it.
+    const url = "mailto:" + encodeURIComponent(RECIPIENT) +
+                "?subject=" + encodeURIComponent(subject) +
+                "&body="    + encodeURIComponent(body);
+    window.location.href = url;
+    return Promise.resolve({ ok: true, delivered: false });
+  }
+
+  return { mode: MODE, recipient: RECIPIENT, send: send };
+})();
+/* ======================= END SUBMISSION MECHANISM ========================= */
+
+
+/* Controlled vocabularies. These are the project's fixed enums — the values must
+   match the database exactly, so the `value` strings are never edited casually.
+   Glosses are display-only. Kept identical to submit.html. */
+const DISCIPLINE_TAGS = [
+  ["architecture", ""],
+  ["engineering-structural", ""],
+  ["engineering-mep", "mechanical, electrical, plumbing"],
+  ["engineering-civil", ""],
+  ["conservation", ""],
+  ["contracting", ""],
+  ["trades-craft", ""],
+  ["education-research", ""],
+  ["planning-consulting", ""],
+  ["materials-testing", ""],
+  ["landscape-cultural-landscape", ""]
+];
+
+const MATERIAL_TAGS = [
+  ["masonry-brick", ""],
+  ["masonry-stone", ""],
+  ["terracotta", ""],
+  ["concrete", ""],
+  ["mortar-plaster-stucco", ""],
+  ["wood-timber", ""],
+  ["wood-windows-doors", ""],
+  ["metals", ""],
+  ["roofing", ""],
+  ["glass-stained-glass", ""],
+  ["paint-finishes", ""],
+  ["earthen-adobe", ""],
+  ["mothballing-stabilization", "securing a vacant or damaged building"],
+  ["moisture-water-management", ""],
+  ["seismic-retrofit", ""],
+  ["sustainability-energy", ""],
+  ["documentation-survey", ""],
+  ["codes-regulatory", ""]
+];
+
+const DISASTER_TAGS = [
+  ["flood", "riverine, flash flood, water infiltration recovery"],
+  ["hurricane-wind", "hurricane, cyclone, typhoon, derecho, severe wind"],
+  ["storm-surge-coastal", "surge, coastal erosion, coastal storm damage"],
+  ["tornado", ""],
+  ["earthquake-seismic", "seismic damage, seismic strengthening"],
+  ["fire", "structure fire and post-fire stabilization"],
+  ["wildfire", "wildland-urban interface fire"],
+  ["winter-storm", "ice, snow load, freeze-thaw emergency damage"],
+  ["landslide-subsidence", "slope failure, sinkhole, ground movement"],
+  ["blast-impact", "explosion, vehicle impact, collapse response"],
+  ["hazard-mitigation", "pre-disaster resilience work: elevation, floodproofing, retrofits"],
+  ["disaster-assessment", "post-disaster condition and safety assessment, ATC-20/45, HENTF"],
+  ["disaster-planning", "preparedness and emergency planning for cultural resources"]
+];
+
+/* Same label transform the map's filter panel uses, so the vocabulary reads
+   identically on both pages. */
+function prettyTag(tag) {
+  return tag.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function renderChoices(containerId, group, tags) {
+  const html = tags.map(([tag, gloss]) => `
+    <label class="choice">
+      <input type="checkbox" name="${group}" value="${tag}">
+      <span>${prettyTag(tag)}${gloss ? `<span class="gloss">${gloss}</span>` : ''}</span>
+    </label>`).join('');
+  document.getElementById(containerId).innerHTML = html;
+}
+
+renderChoices('discipline-choices', 'add_specialty_tags', DISCIPLINE_TAGS);
+renderChoices('material-choices', 'add_specialty_tags', MATERIAL_TAGS);
+renderChoices('disaster-choices', 'add_disaster_tags', DISASTER_TAGS);
+
+const form = document.getElementById('update-form');
+
+const INTENT_LABEL = {
+  'correct-information': 'CORRECTION',
+  'availability-or-capability-changed': 'AVAILABILITY / CAPABILITY CHANGE',
+  'add-capability': 'ADD CAPABILITY',
+  'remove-listing-entirely': 'REMOVAL REQUEST'
+};
+
+function val(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function checkedValues(name) {
+  return Array.from(form.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
+}
+
+function radioValue(name) {
+  const el = form.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+
+function block(label, text) {
+  if (!text) return [];
+  return [label + ':'].concat(text.split(/\r?\n/).map(l => '  ' + l.trim()).filter(l => l.trim()));
+}
+
+/* Reassurance the moment removal is chosen: nothing further is asked of them. */
+const intentNote = document.getElementById('intent-note');
+const submitBtn = document.getElementById('submit-btn');
+form.querySelectorAll('input[name="intent"]').forEach(function (radio) {
+  radio.addEventListener('change', function () {
+    if (radio.value === 'remove-listing-entirely') {
+      intentNote.textContent = 'Removal selected. Just tell us which listing is yours below and send — no reason needed, and you can leave everything else blank.';
+      submitBtn.textContent = 'Compose removal request';
+    } else {
+      intentNote.textContent = '';
+      submitBtn.textContent = 'Compose request';
+    }
+  });
+});
+
+function composeBody() {
+  const intent = radioValue('intent');
+  const lines = [];
+  lines.push('APT Disaster-Response Map — listing update request');
+  lines.push('Sent from ' + window.location.href);
+  lines.push('');
+  lines.push('intent: ' + intent);
+  if (intent === 'remove-listing-entirely') {
+    lines.push('');
+    lines.push('*** REMOVAL REQUESTED — please delete this entry from the published map. ***');
+    lines.push('*** No justification was requested and none is required. ***');
+  }
+  lines.push('');
+  lines.push('-- Which listing --');
+  lines.push('listing_name: ' + val('listing_name'));
+  lines.push('listing_location: ' + val('listing_location'));
+  lines.push('listing_firm: ' + val('listing_firm'));
+  lines.push('relationship_to_listing: ' + val('your_role'));
+
+  const whatIsWrong = val('what_is_wrong');
+  const corrected   = val('corrected_fields');
+  if (whatIsWrong || corrected) {
+    lines.push('');
+    lines.push('-- What should change --');
+    lines.push.apply(lines, block('description', whatIsWrong));
+    lines.push.apply(lines, block('corrected_fields', corrected));
+  }
+
+  const addSpec = checkedValues('add_specialty_tags');
+  const addDis  = checkedValues('add_disaster_tags');
+  const evid    = val('evidence_urls');
+  const drop    = val('tags_to_remove');
+  const projs   = val('past_projects');
+  if (addSpec.length || addDis.length || evid || drop || projs) {
+    lines.push('');
+    lines.push('-- Tag changes --');
+    if (addSpec.length) lines.push('add_specialty_tags: ' + addSpec.join('; '));
+    if (addDis.length)  lines.push('add_disaster_tags: ' + addDis.join('; '));
+    lines.push.apply(lines, block('evidence_urls', evid));
+    lines.push.apply(lines, block('tags_to_remove', drop));
+    lines.push.apply(lines, block('past_projects_to_add', projs));
+  }
+  return lines.join('\r\n');
+}
+
+function composeSubject() {
+  const intent = radioValue('intent');
+  const tag = INTENT_LABEL[intent] || 'UPDATE';
+  return '[APT Map] ' + tag + ' — ' + (val('listing_name') || 'unnamed listing');
+}
+
+/* Only two things are ever required: which intent, and which listing. In
+   particular a removal request submits cleanly with every other field empty. */
+function firstInvalid() {
+  if (!radioValue('intent')) {
+    return { el: form.querySelector('input[name="intent"]'), msg: 'Please choose what you need — including removal, if that is what you want.' };
+  }
+  if (!val('listing_name')) {
+    return { el: document.getElementById('listing_name'), msg: 'Please tell us which listing this is about, so we change the right one.' };
+  }
+  return null;
+}
+
+const statusEl   = document.getElementById('form-status');
+const fallback   = document.getElementById('fallback');
+const copyStatus = document.getElementById('copy-status');
+let lastSubject = '', lastBody = '';
+
+form.addEventListener('submit', function (ev) {
+  ev.preventDefault();
+  form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+  const bad = firstInvalid();
+  if (bad) {
+    statusEl.textContent = bad.msg;
+    bad.el.setAttribute('aria-invalid', 'true');
+    bad.el.focus();
+    return;
+  }
+  statusEl.textContent = '';
+  lastSubject = composeSubject();
+  lastBody = composeBody();
+
+  document.getElementById('fallback-addr').textContent = SUBMISSION.recipient;
+  document.getElementById('fallback-subject').value = lastSubject;
+  document.getElementById('fallback-body').value = lastBody;
+  fallback.style.display = 'block';
+
+  SUBMISSION.send(lastSubject, lastBody).then(function (res) {
+    if (res.delivered) {
+      statusEl.textContent = 'Request sent. Thank you — you will get a reply once it has been handled.';
+      fallback.style.display = 'none';
+    } else {
+      statusEl.textContent = 'Your email program should now be open with the message ready to send.';
+      fallback.focus();
+    }
+  }).catch(function () {
+    statusEl.textContent = 'Sending failed. Please use the copy-and-paste option below.';
+    fallback.focus();
+  });
+});
+
+document.getElementById('copy-btn').addEventListener('click', function () {
+  const body = document.getElementById('fallback-body');
+  const done = function () { copyStatus.textContent = 'Copied.'; setTimeout(() => { copyStatus.textContent = ''; }, 2500); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(body.value).then(done).catch(function () {
+      body.select();
+      copyStatus.textContent = 'Copy blocked by your browser — the text is selected, press Ctrl/Cmd+C.';
+    });
+  } else {
+    body.select();
+    copyStatus.textContent = 'The text is selected — press Ctrl/Cmd+C to copy.';
+  }
+});
+
+document.getElementById('retry-btn').addEventListener('click', function () {
+  if (lastBody) SUBMISSION.send(lastSubject, lastBody);
+});
+</script>
+</body>
+</html>

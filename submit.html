@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Add a Listing — APT Disaster-Response &amp; Rebuild Professionals</title>
+<style>
+  /* Typography, colors and panel styling follow index.html. Font sizes are one step
+     larger here because this is a reading/typing document page rather than map chrome. */
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 15px; line-height: 1.5; color: #222; background: #f4f4f5;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 20px 16px 60px 16px; }
+  .card {
+    background: #fff; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+    padding: 18px 20px; margin-bottom: 16px;
+  }
+  a { color: #1a5fb4; }
+  h1 { font-size: 21px; margin: 0 0 6px 0; }
+  h2 { font-size: 15px; margin: 0 0 4px 0; }
+  p { margin: 0 0 10px 0; }
+  p:last-child { margin-bottom: 0; }
+  .sub { color: #555; font-size: 13px; }
+  .hint { color: #666; font-size: 13px; margin: 2px 0 8px 0; }
+  .backlinks { font-size: 13px; margin: 0 0 14px 0; }
+  .backlinks a { margin-right: 14px; }
+
+  fieldset { border: 1px solid #ddd; border-radius: 6px; margin: 0 0 16px 0; padding: 12px 14px 14px 14px; }
+  legend { font-size: 15px; font-weight: 600; padding: 0 6px; }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  input[type="text"], input[type="url"], input[type="email"], select, textarea {
+    width: 100%; box-sizing: border-box; font: inherit; font-size: 14px;
+    padding: 7px 9px; border: 1px solid #ccc; border-radius: 4px; background: #fff; color: #222;
+  }
+  textarea { min-height: 92px; resize: vertical; }
+  .req { font-weight: 400; font-size: 12px; color: #555; }
+  .req::before { content: "\2731\00a0"; }         /* asterisk is paired with the word "required" — never color alone */
+  .optional { font-weight: 400; font-size: 12px; color: #666; }
+
+  .choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 2px 14px; }
+  .choice { display: flex; align-items: flex-start; font-weight: 400; font-size: 14px; margin: 0; padding: 4px 0; cursor: pointer; }
+  .choice input { margin: 4px 8px 0 0; flex-shrink: 0; }
+  .choice .gloss { color: #666; font-size: 12px; display: block; }
+  .radio-stack .choice { padding: 5px 0; }
+
+  .callout { border: 1px solid #e6c66a; background: #fff8e6; border-radius: 6px; padding: 10px 12px; font-size: 13px; margin: 0 0 16px 0; }
+  .callout strong { display: block; margin-bottom: 2px; }
+  .privacy { font-size: 13px; color: #444; }
+  .privacy li { margin-bottom: 4px; }
+
+  button {
+    font: inherit; font-size: 15px; padding: 9px 16px; border: 1px solid #1a5fb4;
+    border-radius: 6px; background: #1a5fb4; color: #fff; cursor: pointer;
+  }
+  button:hover { background: #17539f; }
+  button.secondary { background: #fff; color: #1a5fb4; }
+  button.secondary:hover { background: #f0f4fa; }
+
+  /* index.html defines no focus styling; a keyboard-operable form needs it, so it is added here. */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
+  .choice:focus-within { outline: 2px solid #1a5fb4; outline-offset: 2px; }
+  input:focus, select:focus, textarea:focus { border-color: #1a5fb4; }
+
+  #fallback { display: none; }
+  #fallback textarea { min-height: 240px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+  .addr { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #f0f0f0; padding: 1px 5px; border-radius: 3px; user-select: all; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .status { font-size: 13px; color: #555; }
+  @media (max-width: 480px) {
+    .wrap { padding: 12px 10px 40px 10px; }
+    .card { padding: 14px 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="backlinks">
+  <a href="index.html">&larr; Back to the map</a>
+  <a href="update.html">Already listed? Correct or remove your listing</a>
+</p>
+
+<div class="card">
+  <h1>Add a listing to the map</h1>
+  <p class="sub">APT Disaster-Response &amp; Rebuild Professionals</p>
+  <p>Use this form if you are a preservation professional or firm with disaster-response or historic-rebuild
+     experience and you are <strong>not</strong> currently on the map. If you <em>are</em> already listed and
+     something is wrong, or you want to be taken off, use the
+     <a href="update.html">update or removal form</a> instead.</p>
+  <div class="callout">
+    <strong>Every submission is reviewed before it appears, and every tag on the map carries a source.</strong>
+    Specialty and disaster-response tags are only assigned when there is publicly checkable evidence — a project
+    page, a publication, a news story, a workshop you taught, a committee role. Please give us links. A listing with
+    location and discipline only, and no disaster tags, is a normal and honest outcome; it is better than a tag we
+    cannot back up. Submitting this form does not guarantee a listing.
+  </div>
+</div>
+
+<form id="submit-form" class="card" novalidate>
+
+  <fieldset>
+    <legend>Who is being listed</legend>
+
+    <div class="field">
+      <fieldset style="border:none; padding:0; margin:0;">
+        <legend style="font-size:14px; padding:0;">Individual or firm? <span class="req">required</span></legend>
+        <div class="radio-stack">
+          <label class="choice"><input type="radio" name="entity_type" value="individual" required> An individual professional</label>
+          <label class="choice"><input type="radio" name="entity_type" value="firm"> A firm or organization</label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="field">
+      <label for="name">Name as it should appear <span class="req">required</span></label>
+      <p class="hint">Person's full name, or the firm's canonical name as it appears on its own website.</p>
+      <input type="text" id="name" name="name" required autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="firm_name">Firm or organization <span class="optional">(individuals only — leave blank for a firm listing)</span></label>
+      <input type="text" id="firm_name" name="firm_name" autocomplete="organization">
+    </div>
+
+    <div class="field">
+      <label for="credentials">Credentials <span class="optional">(individuals only, optional)</span></label>
+      <p class="hint">For example: PE, AIA, FAPT, RA. Comma-separated.</p>
+      <input type="text" id="credentials" name="credentials" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="org_type">Type of organization <span class="optional">(firms only, optional)</span></label>
+      <select id="org_type" name="org_type">
+        <option value="">— select —</option>
+        <option value="architecture">Architecture</option>
+        <option value="engineering">Engineering</option>
+        <option value="conservation">Conservation</option>
+        <option value="contractor">Contractor</option>
+        <option value="trades">Trades</option>
+        <option value="materials-supplier">Materials supplier</option>
+        <option value="media">Media / publishing</option>
+        <option value="government">Government</option>
+        <option value="nonprofit">Nonprofit</option>
+        <option value="education">Education</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <fieldset style="border:none; padding:0; margin:0;">
+        <legend style="font-size:14px; padding:0;">APT affiliation <span class="optional">(optional)</span></legend>
+        <p class="hint">The map includes non-members who meet the same evidence bar, so this does not affect
+           whether you are listed — it only controls how the entry is labelled.</p>
+        <div class="radio-stack">
+          <label class="choice"><input type="radio" name="apt_affiliated" value="yes"> APT member (individual or corporate)</label>
+          <label class="choice"><input type="radio" name="apt_affiliated" value="no"> Not an APT member</label>
+          <label class="choice"><input type="radio" name="apt_affiliated" value="unsure"> Not sure</label>
+        </div>
+      </fieldset>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Professional office location</legend>
+    <div class="callout">
+      <strong>Office address only — never a home address.</strong>
+      This map is public. Give the city of the professional office you work out of. If you work from home, give the
+      nearest city you are willing to have shown publicly, or your firm's office city. Entries are pinned at
+      city precision unless a public office address is given, and we do not publish street addresses for individuals.
+    </div>
+
+    <div class="field">
+      <label for="city">City <span class="req">required</span></label>
+      <input type="text" id="city" name="city" required autocomplete="address-level2">
+    </div>
+
+    <div class="field">
+      <label for="state_province">State / province / region <span class="optional">(optional outside the US and Canada)</span></label>
+      <input type="text" id="state_province" name="state_province" autocomplete="address-level1">
+    </div>
+
+    <div class="field">
+      <label for="country">Country <span class="req">required</span></label>
+      <p class="hint">Short form, e.g. <em>USA</em>, <em>Canada</em>, <em>Mexico</em>, <em>United Kingdom</em>. The map is international.</p>
+      <input type="text" id="country" name="country" required autocomplete="country-name">
+    </div>
+
+    <div class="field">
+      <label for="branch_offices">Other offices <span class="optional">(firms, optional)</span></label>
+      <p class="hint">One per line, as <em>City, ST</em>. Recorded but not separately pinned at present.</p>
+      <textarea id="branch_offices" name="branch_offices" rows="2" style="min-height:56px;"></textarea>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Public links and contact</legend>
+    <div class="callout">
+      <strong>Do not send a personal email address or a mobile number.</strong>
+      The map only ever publishes firm-level, already-public contact information: a main office phone, a general
+      office email, or the URL of a contact page. Personal emails and cell numbers are not published and will be
+      deleted from the submission rather than recorded.
+    </div>
+
+    <div class="field">
+      <label for="website">Website <span class="optional">(optional but strongly preferred)</span></label>
+      <p class="hint">Your firm site or a professional bio page. This is usually the source that supports everything else.</p>
+      <input type="url" id="website" name="website" placeholder="https://example.com" autocomplete="url">
+    </div>
+
+    <div class="field">
+      <label for="public_contact">Firm-level public contact <span class="optional">(optional)</span></label>
+      <p class="hint">Main office phone, general office email, or contact-page URL — the kind of thing already printed on your website.</p>
+      <input type="text" id="public_contact" name="public_contact" placeholder="+1 555 555 5555; https://example.com/contact" autocomplete="off">
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Discipline</legend>
+    <p class="hint">What kind of practice is this? Choose all that apply.</p>
+    <div class="choices" id="discipline-choices"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Materials and trades</legend>
+    <p class="hint">Choose only what you actually work in, and give links below. A material or trade tag is only
+       published when a public page — a services page, a project, a publication — shows the work.</p>
+    <div class="choices" id="material-choices"></div>
+    <div class="field" style="margin-top:14px;">
+      <label for="specialty_evidence">Links supporting these selections</label>
+      <p class="hint">One URL per line. A services or projects page covering several of them is fine.</p>
+      <textarea id="specialty_evidence" name="specialty_evidence" rows="3" placeholder="https://example.com/services/masonry"></textarea>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Disaster-response experience</legend>
+    <p class="hint">Only tick what you have documented experience with. Being a preservation architect or engineer
+       on its own earns no disaster tag — that is deliberate, so the map means something when a tag is there.</p>
+    <div class="choices" id="disaster-choices"></div>
+    <div class="field" style="margin-top:14px;">
+      <label for="disaster_evidence">Links supporting your disaster-response selections</label>
+      <p class="hint">One per line. Project pages, news coverage, an APT Bulletin article, a conference program, an
+         ATC-20/HENTF deployment, a workshop you taught, an emergency-planning contract.</p>
+      <textarea id="disaster_evidence" name="disaster_evidence" rows="3" placeholder="https://example.com/projects/post-flood-stabilization"></textarea>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Documented past projects</legend>
+    <div class="field">
+      <label for="past_projects">Projects with public documentation <span class="optional">(up to about five)</span></label>
+      <p class="hint">One project per line, in this shape:<br>
+         <em>Project name — one sentence on the historic context and what you did — https://link</em></p>
+      <textarea id="past_projects" name="past_projects" rows="5"
+        placeholder="Old Courthouse, Anytown NC — post-hurricane roof and masonry stabilization on an 1892 courthouse — https://example.com/projects/old-courthouse"></textarea>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Anything else</legend>
+    <div class="field">
+      <label for="notes">Notes for the reviewer <span class="optional">(optional)</span></label>
+      <p class="hint">Corrections to how your name is spelled elsewhere, a firm that recently changed name, work that
+         is documented offline, anything that will save the reviewer a guess.</p>
+      <textarea id="notes" name="notes" rows="3"></textarea>
+    </div>
+    <div class="field">
+      <label for="submitted_by">Who is submitting this <span class="optional">(optional)</span></label>
+      <p class="hint">Name and relationship to the listing, if you are submitting on someone else's behalf. We may
+         reply to your message with follow-up questions.</p>
+      <input type="text" id="submitted_by" name="submitted_by" autocomplete="off">
+    </div>
+  </fieldset>
+
+  <div class="btn-row">
+    <button type="submit">Compose submission</button>
+    <span class="status" id="form-status" role="status" aria-live="polite"></span>
+  </div>
+</form>
+
+<div class="card" id="fallback" tabindex="-1">
+  <h2>If your email program did not open</h2>
+  <p class="sub">This page has no server. It hands your answers to your own email program. If nothing happened when
+     you pressed the button — which is common on webmail-only setups such as Gmail in a browser without a mail
+     handler registered — copy the text below and email it yourself to
+     <span class="addr" id="fallback-addr"></span>, with the subject line shown.</p>
+  <div class="field">
+    <label for="fallback-subject">Subject</label>
+    <input type="text" id="fallback-subject" readonly>
+  </div>
+  <div class="field">
+    <label for="fallback-body">Message</label>
+    <textarea id="fallback-body" readonly></textarea>
+  </div>
+  <div class="btn-row">
+    <button type="button" class="secondary" id="copy-btn">Copy message</button>
+    <button type="button" class="secondary" id="retry-btn">Try opening my email program again</button>
+    <span class="status" id="copy-status" role="status" aria-live="polite"></span>
+  </div>
+</div>
+
+<div class="card privacy">
+  <h2>What happens to what you send</h2>
+  <ul>
+    <li>Pressing the button does not upload anything. It opens a message in your own email program, addressed to
+        the project maintainer, with your answers written into the body. You can read and edit it before sending,
+        and nothing leaves your computer until you press send in your email program.</li>
+    <li>Your email address will be visible to the maintainer, because you are sending an email. It is used for
+        follow-up about your listing and is not published on the map.</li>
+    <li>What may be published on the map: name, firm, individual/firm, city, state/province, country, website,
+        firm-level public contact, specialty tags, disaster tags, documented projects, and the source links behind
+        each tag.</li>
+    <li>What is never published: home addresses, personal email addresses, mobile numbers, and any tag we cannot
+        support with a public source.</li>
+    <li>This page loads no fonts, scripts, trackers or analytics from anywhere. There is no cookie and no logging.</li>
+    <li>Being listed is voluntary. You can ask to be corrected or removed at any time, with no reason required, via
+        the <a href="update.html">update or removal form</a>.</li>
+  </ul>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ============================================================================
+ * SUBMISSION MECHANISM — THE ONE PLACE TO CHANGE
+ * ----------------------------------------------------------------------------
+ * Everything about how this form is delivered lives in this single object. No
+ * other part of the page knows or cares how submission happens; it only calls
+ * SUBMISSION.send(subject, body).
+ *
+ * >>> ACTION REQUIRED: replace RECIPIENT below with the real address. <<<
+ *
+ * Current mode: "mailto" — composes a message in the visitor's own email client.
+ * Zero infrastructure, zero third-party accounts, nothing to maintain, and no
+ * one but the maintainer ever sees the data. Two real drawbacks: the recipient
+ * address is exposed in the page source (scrapeable by spammers), and it does
+ * nothing at all for visitors with no mail client registered in their browser.
+ * The visible fallback panel (copy-the-text-and-send-it-yourself) exists to
+ * cover the second case; keep it if you switch mechanisms.
+ *
+ * To swap in a form-to-email service (Formspree, Basin, Netlify Forms, …),
+ * change mode to "post", set ENDPOINT, and nothing else on the page changes:
+ *
+ *   const MODE      = "post";
+ *   const ENDPOINT  = "https://formspree.io/f/xxxxxxxx";
+ *
+ * The "post" branch below is already written and inert until MODE is changed.
+ * ==========================================================================*/
+const SUBMISSION = (function () {
+  const MODE      = "mailto";                          // "mailto" | "post"
+  const RECIPIENT = "PLACEHOLDER-REPLACE-ME@psu.edu";  // <-- REPLACE THIS
+  const ENDPOINT  = "";                                // only used when MODE === "post"
+
+  function send(subject, body) {
+    if (MODE === "post") {
+      return fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ subject: subject, message: body })
+      }).then(r => ({ ok: r.ok, delivered: r.ok }));
+    }
+    // mailto: we cannot detect whether the mail client actually opened, so we
+    // always reveal the copy-and-paste fallback alongside it.
+    const url = "mailto:" + encodeURIComponent(RECIPIENT) +
+                "?subject=" + encodeURIComponent(subject) +
+                "&body="    + encodeURIComponent(body);
+    window.location.href = url;
+    return Promise.resolve({ ok: true, delivered: false });
+  }
+
+  return { mode: MODE, recipient: RECIPIENT, send: send };
+})();
+/* ======================= END SUBMISSION MECHANISM ========================= */
+
+
+/* Controlled vocabularies. These are the project's fixed enums — the values must
+   match the database exactly, so the `value` strings are never edited casually.
+   Glosses are display-only. */
+const DISCIPLINE_TAGS = [
+  ["architecture", ""],
+  ["engineering-structural", ""],
+  ["engineering-mep", "mechanical, electrical, plumbing"],
+  ["engineering-civil", ""],
+  ["conservation", ""],
+  ["contracting", ""],
+  ["trades-craft", ""],
+  ["education-research", ""],
+  ["planning-consulting", ""],
+  ["materials-testing", ""],
+  ["landscape-cultural-landscape", ""]
+];
+
+const MATERIAL_TAGS = [
+  ["masonry-brick", ""],
+  ["masonry-stone", ""],
+  ["terracotta", ""],
+  ["concrete", ""],
+  ["mortar-plaster-stucco", ""],
+  ["wood-timber", ""],
+  ["wood-windows-doors", ""],
+  ["metals", ""],
+  ["roofing", ""],
+  ["glass-stained-glass", ""],
+  ["paint-finishes", ""],
+  ["earthen-adobe", ""],
+  ["mothballing-stabilization", "securing a vacant or damaged building"],
+  ["moisture-water-management", ""],
+  ["seismic-retrofit", ""],
+  ["sustainability-energy", ""],
+  ["documentation-survey", ""],
+  ["codes-regulatory", ""]
+];
+
+const DISASTER_TAGS = [
+  ["flood", "riverine, flash flood, water infiltration recovery"],
+  ["hurricane-wind", "hurricane, cyclone, typhoon, derecho, severe wind"],
+  ["storm-surge-coastal", "surge, coastal erosion, coastal storm damage"],
+  ["tornado", ""],
+  ["earthquake-seismic", "seismic damage, seismic strengthening"],
+  ["fire", "structure fire and post-fire stabilization"],
+  ["wildfire", "wildland-urban interface fire"],
+  ["winter-storm", "ice, snow load, freeze-thaw emergency damage"],
+  ["landslide-subsidence", "slope failure, sinkhole, ground movement"],
+  ["blast-impact", "explosion, vehicle impact, collapse response"],
+  ["hazard-mitigation", "pre-disaster resilience work: elevation, floodproofing, retrofits"],
+  ["disaster-assessment", "post-disaster condition and safety assessment, ATC-20/45, HENTF"],
+  ["disaster-planning", "preparedness and emergency planning for cultural resources"]
+];
+
+/* Same label transform the map's filter panel uses, so the vocabulary reads
+   identically on both pages. */
+function prettyTag(tag) {
+  return tag.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function renderChoices(containerId, group, tags) {
+  const html = tags.map(([tag, gloss]) => `
+    <label class="choice">
+      <input type="checkbox" name="${group}" value="${tag}">
+      <span>${prettyTag(tag)}${gloss ? `<span class="gloss">${gloss}</span>` : ''}</span>
+    </label>`).join('');
+  document.getElementById(containerId).innerHTML = html;
+}
+
+renderChoices('discipline-choices', 'specialty_tags', DISCIPLINE_TAGS);
+renderChoices('material-choices', 'specialty_tags', MATERIAL_TAGS);
+renderChoices('disaster-choices', 'disaster_tags', DISASTER_TAGS);
+
+const form = document.getElementById('submit-form');
+
+function val(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function checkedValues(name) {
+  return Array.from(form.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
+}
+
+function radioValue(name) {
+  const el = form.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+
+/* Multi-line answers are indented under their heading so the message stays
+   readable in a plain-text mail client. */
+function block(label, text) {
+  if (!text) return [];
+  return [label + ':'].concat(text.split(/\r?\n/).map(l => '  ' + l.trim()).filter(l => l.trim()));
+}
+
+function composeBody() {
+  const lines = [];
+  lines.push('APT Disaster-Response Map — new listing submission');
+  lines.push('Sent from ' + window.location.href);
+  lines.push('');
+  lines.push('-- Entity --');
+  lines.push('entity_type: ' + radioValue('entity_type'));
+  lines.push('name: ' + val('name'));
+  if (val('firm_name'))   lines.push('firm_name: ' + val('firm_name'));
+  if (val('credentials')) lines.push('credentials: ' + val('credentials'));
+  if (val('org_type'))    lines.push('org_type: ' + val('org_type'));
+  if (radioValue('apt_affiliated')) lines.push('apt_affiliated: ' + radioValue('apt_affiliated'));
+  lines.push('');
+  lines.push('-- Professional office location (not a home address) --');
+  lines.push('city: ' + val('city'));
+  lines.push('state_province: ' + val('state_province'));
+  lines.push('country: ' + val('country'));
+  lines.push.apply(lines, block('branch_offices', val('branch_offices')));
+  lines.push('');
+  lines.push('-- Public links and contact --');
+  lines.push('website: ' + val('website'));
+  lines.push('public_contact: ' + val('public_contact'));
+  lines.push('');
+  lines.push('-- Tags (project enum values) --');
+  lines.push('specialty_tags: ' + checkedValues('specialty_tags').join('; '));
+  lines.push('disaster_tags: ' + checkedValues('disaster_tags').join('; '));
+  lines.push('');
+  lines.push('-- Evidence --');
+  lines.push.apply(lines, block('specialty_evidence_urls', val('specialty_evidence')));
+  lines.push.apply(lines, block('disaster_evidence_urls', val('disaster_evidence')));
+  lines.push.apply(lines, block('past_projects', val('past_projects')));
+  lines.push('');
+  lines.push('-- Other --');
+  lines.push.apply(lines, block('notes', val('notes')));
+  if (val('submitted_by')) lines.push('submitted_by: ' + val('submitted_by'));
+  return lines.join('\r\n');
+}
+
+function composeSubject() {
+  const kind = radioValue('entity_type') === 'firm' ? 'firm' : 'individual';
+  return '[APT Map] New listing — ' + (val('name') || 'unnamed') + ' (' + kind + ')';
+}
+
+/* Validation is deliberately light: only the fields needed to identify and place
+   an entry are required. Everything else can be filled in during review. */
+function firstInvalid() {
+  if (!radioValue('entity_type')) return { el: form.querySelector('input[name="entity_type"]'), msg: 'Please say whether this is an individual or a firm.' };
+  if (!val('name'))    return { el: document.getElementById('name'),    msg: 'Please give the name to be listed.' };
+  if (!val('city'))    return { el: document.getElementById('city'),    msg: 'Please give the professional office city.' };
+  if (!val('country')) return { el: document.getElementById('country'), msg: 'Please give the country.' };
+  const site = document.getElementById('website');
+  if (site.value.trim() && !/^https?:\/\/\S+$/i.test(site.value.trim())) {
+    return { el: site, msg: 'The website should start with http:// or https:// — or leave it blank.' };
+  }
+  return null;
+}
+
+const statusEl   = document.getElementById('form-status');
+const fallback   = document.getElementById('fallback');
+const copyStatus = document.getElementById('copy-status');
+let lastSubject = '', lastBody = '';
+
+form.addEventListener('submit', function (ev) {
+  ev.preventDefault();
+  form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+  const bad = firstInvalid();
+  if (bad) {
+    statusEl.textContent = bad.msg;
+    bad.el.setAttribute('aria-invalid', 'true');
+    bad.el.focus();
+    return;
+  }
+  statusEl.textContent = '';
+  lastSubject = composeSubject();
+  lastBody = composeBody();
+
+  document.getElementById('fallback-addr').textContent = SUBMISSION.recipient;
+  document.getElementById('fallback-subject').value = lastSubject;
+  document.getElementById('fallback-body').value = lastBody;
+  fallback.style.display = 'block';
+
+  SUBMISSION.send(lastSubject, lastBody).then(function (res) {
+    if (res.delivered) {
+      statusEl.textContent = 'Submission sent. Thank you — you will hear back about the review.';
+      fallback.style.display = 'none';
+    } else {
+      statusEl.textContent = 'Your email program should now be open with the message ready to send.';
+      fallback.focus();
+    }
+  }).catch(function () {
+    statusEl.textContent = 'Sending failed. Please use the copy-and-paste option below.';
+    fallback.focus();
+  });
+});
+
+document.getElementById('copy-btn').addEventListener('click', function () {
+  const body = document.getElementById('fallback-body');
+  const done = function () { copyStatus.textContent = 'Copied.'; setTimeout(() => { copyStatus.textContent = ''; }, 2500); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(body.value).then(done).catch(function () {
+      body.select();
+      copyStatus.textContent = 'Copy blocked by your browser — the text is selected, press Ctrl/Cmd+C.';
+    });
+  } else {
+    body.select();
+    copyStatus.textContent = 'The text is selected — press Ctrl/Cmd+C to copy.';
+  }
+});
+
+document.getElementById('retry-btn').addEventListener('click', function () {
+  if (lastBody) SUBMISSION.send(lastSubject, lastBody);
+});
+</script>
+</body>
+</html>
