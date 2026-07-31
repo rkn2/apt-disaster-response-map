@@ -20,6 +20,10 @@
   #title-panel { top: 10px; left: 10px; max-width: 320px; }
   #title-panel h1 { font-size: 15px; margin: 0 0 4px 0; }
   #title-panel p { font-size: 12px; margin: 0; color: #333; line-height: 1.4; }
+  #title-nav { margin-top: 8px; padding-top: 6px; border-top: 1px solid #ddd; font-size: 11px; }
+  #title-nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  #title-nav a { color: #1a5fb4; text-decoration: none; }
+  #title-nav a:hover, #title-nav a:focus { text-decoration: underline; }
   #search-panel { top: 10px; left: 50%; transform: translateX(-50%); width: 280px; padding: 8px 10px; }
   #search-input { width: 100%; box-sizing: border-box; font-size: 13px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; }
   #search-results { margin-top: 2px; max-height: 220px; overflow-y: auto; }
@@ -91,6 +95,13 @@
 <div id="title-panel" class="panel">
   <h1>APT Disaster-Response &amp; Rebuild Professionals</h1>
   <p>Firms and individuals with documented historic-preservation experience — acute disaster response and/or historic-rebuild trades. Most are affiliated with the Association for Preservation Technology (APT); entries marked "independently researched" are not APT members but meet the same evidence bar. Maintained by APT's Disaster Response Initiative.</p>
+  <nav id="title-nav" aria-label="Site">
+    <ul>
+      <li><a href="faq.html">About, FAQ &amp; disclaimer</a></li>
+      <li><a href="submit.html">Suggest a listing</a></li>
+      <li><a href="update.html">Update or remove a listing</a></li>
+    </ul>
+  </nav>
 </div>
 
 <div id="search-panel" class="panel">
